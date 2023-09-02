@@ -1,0 +1,12 @@
+---
+- name: Show message
+  debug:
+    msg: "test-AWX2"
+    
+- name: Show python lib/site paths
+  community.general.python_requirements_info:
+  register: result_variable
+
+- name: show result_variable
+  debug:
+    msg: "{{ result_variable }}"
