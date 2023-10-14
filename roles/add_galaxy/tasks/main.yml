@@ -3,10 +3,17 @@
   debug:
     msg: "test-AWX2"
     
-- name: Show python lib/site paths
-  community.general.python_requirements_info:
-  register: result_variable
-
-- name: show result_variable
+- name: Show name1
   debug:
-    msg: "{{ result_variable }}"
+    msg: "{{ name1 | default('vadim1') }}"
+    
+- name: Show name2
+  debug:
+    msg: "{{ name2 | default('vadim2') }}"    
+# - name: Show python lib/site paths
+#   community.general.python_requirements_info:
+#   register: result_variable
+
+# - name: show result_variable
+#   debug:
+#     msg: "{{ result_variable }}"
