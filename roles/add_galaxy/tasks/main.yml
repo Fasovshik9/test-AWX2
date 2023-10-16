@@ -3,13 +3,13 @@
   debug:
     msg: "test-AWX2"
     
-- name: Show name1
+- name: Show build number
   debug:
-    msg: "{{ name1 | default('vadim1') }}"
+    msg: "{{ build_number | default('vadim1') }}"
     
-- name: Show name2
-  debug:
-    msg: "{{ name2 | default('vadim2') }}"    
+# - name: Show name2
+#   debug:
+#     msg: "{{ name2 | default('vadim2') }}"    
 # - name: Show python lib/site paths
 #   community.general.python_requirements_info:
 #   register: result_variable
