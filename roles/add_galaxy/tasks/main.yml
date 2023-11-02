@@ -3,9 +3,13 @@
   debug:
     msg: "test-AWX2"
     
-- name: Show build number
+# - name: Show build number
+#   debug:
+#     msg: "{{ build_number | default('vadim1') }}"
+
+- name: Show awx_job_id
   debug:
-    msg: "{{ build_number | default('vadim1') }}"
+    msg: "{{ awx_job_id }}"
     
 # - name: Show name2
 #   debug:
