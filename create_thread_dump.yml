@@ -21,7 +21,7 @@
           ls
           {%- endif -%}
     - name: Check
-      shell: /bin/ps
+      shell: ps
       
     - name: Check running java processes
       shell: ps -f -u sitis | grep -P "D{{ service_name }}={{ build_number | default('\\d+') }}" | grep -v grep
