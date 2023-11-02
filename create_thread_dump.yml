@@ -1,0 +1,83 @@
+---
+- gather_facts: no
+  become: yes
+  hosts: localhost
+  vars:
+    dump_dir: /home/sitis/dumps
+    app: "{{ application | default('social') }}"
+    awx_job_id: 123
+    region_name: mr
+  tasks:
+    - name: Set service_name based on application
+      set_fact:
+        service_name: >-
+          {%- if app == 'social' -%}
+          ss
+          {%- elif app == 'player' -%}
+          ps
+          {%- elif app == 'battle' -%}
+          bs
+          {%- elif app == 'login' -%}
+          ls
+          {%- endif -%}
+
+    - name: Check running java processes
+      shell: ps -f -u sitis | grep -P "D{{ service_name }}={{ build_number | default('\\d+') }}" | grep -v grep
+      register: ps_cmd
+      
+    - name: Set java PID and build number
+      set_fact:
+        java_pid_number: "{{ ps_cmd.stdout.split()[1] }}"
+        build_number: "{{ ps_cmd_stdout | regex_findall(service_name_pattern) | first }}"
+      vars:
+        service_name_pattern: "D{{ service_name }}=(\\d+)"
+        ps_cmd_stdout: "{{ ps_cmd.stdout }}"
+        
+    - name: Create the directory
+      file:
+        path: "{{ dump_dir }}"
+        owner: sitis
+        group: sitis
+        mode: '755'
+        state: directory
+  
+    - name: Set log and path name
+      set_fact:
+        log_name: "trace_{{ service_name }}_{{ lookup('pipe','date +%Y-%m-%d_%H-%M-%S') }}.log"
+
+    - name: Set log and path name
+      set_fact:
+        file_path: "{{ dump_dir }}/{{ log_name }}"
+
+    - name: Create thread dump java processes
+      shell: jstack -l "{{ java_pid_number }}" > "{{ file_path }}"
+
+    - name: Get S3 credentials from Vault
+      set_fact:
+        s3_access_key: "ROOTNAME"
+        s3_secret_key: "CHANGEME123"
+        s3_region: "us-east-1"
+        s3_endpoint_url: "http://localhost:9000"
+        s3_bucket: "aowdata"
+        s3_path: "traces/{{ region_name }}/{{ awx_job_id }}_{{ log_name }}"
+      # vars:
+      #   s3: "{{ lookup('hashi_vault', 'secret=devops/data/private/minio') }}"
+      when: awx_job_id is defined
+
+
+    - name: Put trace to s3
+      amazon.aws.s3_object:
+        mode: put
+        access_key: "{{ s3_access_key }}"
+        secret_key: "{{ s3_secret_key }}"
+        bucket: "{{ s3_bucket }}"
+        region: "{{ s3_region }}"
+        encrypt: no
+        src: "{{ file_path }}"
+        endpoint_url: "{{ s3_endpoint_url }}"
+        object: "{{ s3_path }}"
+      when: awx_job_id is defined
+
+    - name: Print cariable
+      ansible.builtin.debug:
+        msg: "{{ build_number }}"
