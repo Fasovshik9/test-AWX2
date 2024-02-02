@@ -1,0 +1,2 @@
+[test1]
+host1             ansible_host=127.0.0.1       ansible_remote_host127.0.0.1
